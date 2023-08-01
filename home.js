@@ -1,11 +1,13 @@
-function getAll() {
+function getAll(page) {
     $.ajax({
         type: "GET",
         headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
-        url: "http://localhost:8080/products",
+        url: "http://localhost:8080/products?page=" + page,
         success: function (data) {
+            console.log(data)
             showProduct(data);
         },
         error: function (err) {
@@ -16,20 +18,28 @@ function getAll() {
 
 function showProduct(arr) {
     let str = ""
-    for (const p of arr) {
-        str +=`<div class="col-lg-6 menu-item filter-starters">
+    for (const p of arr.content) {
+        str += `<div class="col-lg-6 menu-item filter-starters">
             <img src="${p.img}" class="menu-img" alt="">
             <div class="menu-content">
               <a href="#">${p.name}</a><span>$ ${p.price}</span>
             </div>
             <div class="menu-ingredients">
-              ${p.category.name}
+              ${p.quality}
             </div>
           </div>`
     }
+    for (let i = 0; i < arr.totalPages; i++) {
+        if (i == arr.number) {
+            str += `<button class="btn btn-secondary" onclick="getAll(${i})" > ${i + 1}  </button>`
+        } else
+            str += `<button class="btn btn-light" onclick="getAll(${i})" > ${i + 1}  </button>`
+
+    }
     document.getElementById("show").innerHTML = str;
 }
-getAll();
+
+getAll(0);
 
 
 function create() {
@@ -41,9 +51,9 @@ function create() {
     let product = {
         name: name,
         price: price,
-        img:img,
+        img: img,
         category: {
-            id:category
+            id: category
         }
     }
     $.ajax({
@@ -53,7 +63,7 @@ function create() {
             'Content-Type': 'application/json'
         },
         url: "http://localhost:8080/products",
-        data:JSON.stringify(product),
+        data: JSON.stringify(product),
         success: function (data) {
             getAll();
         },
